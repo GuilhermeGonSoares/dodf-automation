@@ -65,6 +65,41 @@ Dashboard
     font-size: 1.2rem;
   }
 
+  #jurisdicionada-input {
+    width: 300px; /* Largura limitada */
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 10px;
+    transition: border-color 0.3s ease-in-out;
+    margin-bottom: 15px; /* Espaçamento inferior */
+  }
+
+  /* Estilo para mudar a cor da borda quando o input estiver focado */
+  #jurisdicionada-input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+
+  /* Estilo para os itens do autocompletar usando Bootstrap */
+  .ui-autocomplete {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+  }
+
+  /* Estilo para cada item do autocompletar */
+  .ui-menu-item {
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  /* Estilo quando um item do autocompletar estiver focado */
+  .ui-state-focus {
+    background-color: #007bff;
+    color: white;
+  }
+  
 </style>
 
 <div class="background-between-sections">
@@ -88,12 +123,12 @@ Dashboard
 
     <div class="row">
       <div class="col-lg-6 mb-4 d-flex align-items-stretch">
-        <div class="p-4 bg-white rounded shadow-sm hover-shadow flex-grow-1">
+        <div class="p-4 bg-white rounded shadow hover-shadow flex-grow-1">
           <h4 class="mb-4">Informações do Usuário</h4>
           <div class="d-flex justify-content-between">
             <div class="info-item">
               <strong>Assessor:</strong>
-              <p class="text-muted">{{ request.user.username }}</p>
+              <p class="text-muted">{{ request.user.username|capfirst }}</p>
             </div>
             <div class="info-item">
               <strong>Unidade:</strong>
@@ -106,7 +141,7 @@ Dashboard
 
       <div class="col-lg-6 mb-4 d-flex align-items-stretch">
         <!-- Seção de Busca por Datas -->
-        <div class="p-3 bg-white rounded shadow-sm hover-shadow flex-grow-1">
+        <div class="p-3 bg-white rounded shadow hover-shadow flex-grow-1">
           <h4 class="mb-3">Buscar por Datas</h4>
           <form method="get" class="row">
             <div class="col-sm-8">
@@ -120,6 +155,8 @@ Dashboard
         </div>
       </div>
     </div>
+    <input type="text" id="jurisdicionada-input" name="jurisdicionada" placeholder="Digite o nome da jurisdicionada">
+
 
   <!-- Tabela de Jurisdicionadas -->
 <div class="row">
@@ -161,5 +198,22 @@ Dashboard
   </div>
 </div>
 </div>
+
+<script>
+  $(function() {
+      $("#jurisdicionada-input").autocomplete({
+          source: "{% url 'mpc:autocomplete_jurisdicionada' %}",
+          minLength: 2, // Número mínimo de caracteres para acionar o autocompletar
+          select: function(event, ui) {
+            $("#jurisdicionada-input").val(ui.item.label);
+            window.location.href = "{% url 'mpc:jurisdicionada_detail' %}?id=" + ui.item.value;
+            return false;
+        }
+        
+      });
+  });
+  </script>
+  
+
 
 {% endblock %}

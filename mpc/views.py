@@ -1,12 +1,13 @@
 from django.http import Http404, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from .models import *
 from user.models import UserProfile
 from django.contrib.auth.decorators import login_required
 import json
 from .service import get_analise_by_dodf_id
 from .cache import get_cached_publicacoes
-from datetime import date, datetime
+from datetime import datetime
+from .service import get_all_publicacoes_by_demandante
 
 
 @login_required(login_url='user:login', redirect_field_name='next')
@@ -87,3 +88,23 @@ def delete_publicacao(request):
             raise Http404("Publicação não encontrada!")
         publicacao.delete()
         return JsonResponse({'status': 'success', 'message': 'Comentário apagado com sucesso!'})
+    
+@login_required(login_url='user:login')
+def autocomplete_jurisdicionada(request):
+    term = request.GET.get('term')  # Termo digitado pelo usuário
+    jurisdicionadas = Jurisdicionada.objects.filter(nome__icontains=term)[:10]  # Filtra as jurisdicionadas que contêm o termo
+    results = [{'label': jurisdicionada.nome, 'value': jurisdicionada.id} for jurisdicionada in jurisdicionadas]
+    return JsonResponse(results, safe=False)
+
+
+def jurisdicionada_detail(request):
+    jurisdicionada_id = request.GET.get('id')
+    page_number = request.GET.get('page', 1)
+    jurisdicionada = Jurisdicionada.objects.get(pk=jurisdicionada_id)
+
+    page_results = get_all_publicacoes_by_demandante(jurisdicionada, page_number)
+
+    return render(request, 'pages/jurisdicionada-detail.html', {
+        'page_results': page_results, 
+        'jurisdicionada_id': jurisdicionada_id
+        })

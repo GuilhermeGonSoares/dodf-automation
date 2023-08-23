@@ -1,5 +1,5 @@
 from django.core.cache import cache
-from .service import get_publicacoes
+from .service import get_publicacoes_by_day
 from datetime import datetime
 
 def get_cached_publicacoes(coDemandantes, user_profile_id, data):
@@ -9,7 +9,7 @@ def get_cached_publicacoes(coDemandantes, user_profile_id, data):
     if cached_result:
         return cached_result
 
-    result = get_publicacoes(coDemandantes,  data)
+    result = get_publicacoes_by_day(coDemandantes,  data)
     # Armazena o resultado no cache por 24 horas (86400 segundos)
     cache.set(cache_key, result, 86400)
     return result

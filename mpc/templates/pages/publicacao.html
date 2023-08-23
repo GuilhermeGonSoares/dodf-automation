@@ -64,7 +64,7 @@ Publicações
           <h5 class="card-title d-flex align-items-center justify-content-center">
             #{{noticia.id}}
             <button class="btn btn-link btn-toggle" data-noticia-id="{{ noticia.id }}">
-               {{ noticia.titulo }}
+               {{ noticia.titulo|safe }}
             </button>
           </h5>
           <div class="card-content">

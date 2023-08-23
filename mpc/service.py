@@ -1,7 +1,7 @@
 from .models import DodfPublicacao, PublicacaoAnalisada
-from datetime import date
 from django.db import connection
-
+from django.db.models import F
+from django.core.paginator import Paginator
 
 def publicacao_por_demandante(demandantes, secao, data):
 
@@ -43,7 +43,7 @@ def get_descendants(co_demandante, exclusions_list):
 
     return descendants
 
-def get_publicacoes(coDemandantes, data):
+def get_publicacoes_by_day(coDemandantes, data):
     dic = {}
     for jurisdicionada in coDemandantes:
         descendentes = get_descendants(jurisdicionada, [j for j in coDemandantes if j != jurisdicionada])
@@ -51,3 +51,19 @@ def get_publicacoes(coDemandantes, data):
         dic[jurisdicionada] = publicacoes
         
     return dic
+
+def get_all_publicacoes_by_demandante(jurisdicionada, page_number):
+    descendentes = get_descendants(jurisdicionada.coDemandante, [])
+
+    resultado = DodfPublicacao.objects.select_related('publicacaoanalisada').filter(
+        coDemandante__in=descendentes,
+    ).order_by(F('carga').desc())
+
+    items_per_page = 10 
+    paginator = Paginator(resultado, items_per_page)
+
+    try:
+        page_results = paginator.page(page_number)
+    except:
+        page_results = paginator.page(paginator.num_pages)
+    return page_results
