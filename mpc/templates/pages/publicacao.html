@@ -1,0 +1,252 @@
+{% extends "template/global.html" %}
+{% load custom_tags %}
+
+{% block title %}
+Publicações
+{% endblock %}
+
+{% block content %}
+<style>
+  /* Defina a animação de fade-out */
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* Adicione uma classe para aplicar a animação */
+  .alert-fade-out {
+    animation: fadeOut 0.5s ease-in-out forwards;
+  }
+  
+  /* Adicione uma classe para aplicar a animação */
+  .alert-fade-in {
+    animation: fadeIn 0.5s ease-in-out forwards;
+  }
+</style>
+<div class="alert alert-success" id="success-alert" role="alert" style="display: none;">
+  Ação realizada com sucesso!
+</div>
+
+<div class="alert alert-danger" id="error-alert" role="alert" style="display: none;">
+  Ocorreu um erro ao realizar a ação.
+</div>
+<h1>Publicações referentes a: {{ jurisdicionada.nome }}</h1>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8">
+      {% for noticia in noticias %}
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title d-flex align-items-center justify-content-center">
+            #{{noticia.id}}
+            <button class="btn btn-link btn-toggle" data-noticia-id="{{ noticia.id }}">
+               {{ noticia.titulo }}
+            </button>
+          </h5>
+          <div class="card-content">
+            <p class="card-text">{{ noticia.texto|safe }}</p>
+            <div class="form-group">
+              <label for="comentario-{{ noticia.id }}">Comentário:</label>
+              {% if noticia.publicacaoanalisada %}
+                <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3">{{noticia.publicacaoanalisada.comentario}}</textarea>
+              {% else %}
+                <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3"></textarea>
+              {% endif %}
+            </div>
+            <button class="btn btn-primary btn-save mt-3" data-noticia-id="{{ noticia.id }}">Salvar</button>
+            <button class="btn btn-danger btn-delete mt-3" data-noticia-id="{{ noticia.id }}">Ocultar</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Publicações Selecionadas</h5>
+          <ul class="list-group" id="noticias-selecionadas">
+            {% for noticia in noticias %}
+              {% if noticia.publicacaoanalisada %}
+                <li class="list-group-item d-flex justify-content-between" id="noticia-item-{{ noticia.id }}">
+                    Publicação #{{ noticia.id }}
+                    <span class="float-right trash-icon" data-noticia-id="{{ noticia.id }}"><i class="fa fa-trash"></i></span>
+                </li>
+              {% endif %}
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleButtons = document.querySelectorAll('.btn-toggle');
+    const saveButtons = document.querySelectorAll('.btn-save');
+    const hideButtons = document.querySelectorAll('.btn-delete');
+    const noticiasSelecionadasList = document.getElementById(
+      'noticias-selecionadas'
+    );
+    const successAlert = document.getElementById('success-alert');
+    const errorAlert = document.getElementById('error-alert');
+
+    const hideAlerts = () => {
+      successAlert.classList.add('alert-fade-out'); // Adicione a classe de animação
+      errorAlert.classList.add('alert-fade-out');   // Adicione a classe de animação
+      
+      setTimeout(() => {
+          successAlert.style.display = 'none';
+          errorAlert.style.display = 'none';
+          successAlert.classList.remove('alert-fade-out'); // Remova a classe de animação
+          errorAlert.classList.remove('alert-fade-out');   // Remova a classe de animação
+      }, 500); // Tempo para a animação completar (0.5 segundos)
+    };
+
+    const showAlert = (alertElement) => {
+      alertElement.style.display = 'block';
+      alertElement.classList.add('alert-fade-in'); // Adicione a classe de animação
+      
+      setTimeout(() => {
+          alertElement.classList.remove('alert-fade-in'); // Remova a classe de animação
+      }, 500); // Tempo para a animação completar (0.5 segundos)
+    };
+  
+    toggleButtons.forEach((button) => {
+      button.addEventListener('click', function () {
+        const noticiaId = button.getAttribute('data-noticia-id');
+        const cardContent = button.parentElement.nextElementSibling;
+        cardContent.classList.toggle('d-none');
+      });
+    });
+  
+    saveButtons.forEach((button) => {
+      button.addEventListener('click', async function () {
+        const noticiaId = button.getAttribute('data-noticia-id');
+        const comentario = document.getElementById(
+          'comentario-' + noticiaId
+        ).value;
+  
+        // Verifique se a notícia já foi adicionada
+        const existingItem = document.querySelector(`#noticia-item-${noticiaId}`);
+        
+  
+        const url = 'http://localhost:8000/mpc/save_publicacao/';
+        try {
+          const response = await fetch(url, {
+            // use 'await' aqui
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}', // Proteção CSRF do Django
+            },
+            body: JSON.stringify({
+              noticia_id: noticiaId,
+              comentario: comentario,
+            }),
+          });
+  
+          const responseData = await response.json(); // parseando a resposta como JSON
+  
+          if (response.ok && responseData.status === 'success') {
+            if (!existingItem) {
+              const noticiaSelecionadaItem = document.createElement('li');
+              noticiaSelecionadaItem.classList.add('list-group-item');
+              noticiaSelecionadaItem.classList.add('d-flex');
+              noticiaSelecionadaItem.classList.add('justify-content-between');
+              noticiaSelecionadaItem.setAttribute('id', `noticia-item-${noticiaId}`);
+              noticiaSelecionadaItem.innerHTML = `Notícia #${noticiaId} 
+                <span class="float-right trash-icon" data-noticia-id="${noticiaId}"><i class="fa fa-trash"></i></span>`;
+              noticiasSelecionadasList.appendChild(noticiaSelecionadaItem);
+            }
+
+            showAlert(successAlert);
+            errorAlert.style.display = 'none';
+            setTimeout(hideAlerts, 2000);
+          } else {
+            successAlert.style.display = 'none';
+            showAlert(errorAlert);
+            setTimeout(hideAlerts, 2000);
+          }
+        } catch (error) {
+          successAlert.style.display = 'none';
+          showAlert(errorAlert);
+          setTimeout(hideAlerts, 2000);
+        }
+      });
+    });
+  
+    hideButtons.forEach((button) => {
+      button.addEventListener('click', function () {
+        const noticiaId = button.getAttribute('data-noticia-id');
+        const cardContent = button.parentElement;
+        cardContent.classList.add('d-none');
+      });
+    });
+  
+    noticiasSelecionadasList.addEventListener('click', async function (e) { // Note o 'async' aqui
+  if (e.target.classList.contains('fa-trash')) {
+    const noticiaId = e.target.parentElement.getAttribute('data-noticia-id');
+  
+    
+    // Aqui começa o código para deletar a notícia via fetch
+    const url = 'http://localhost:8000/mpc/delete_publicacao/';
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({
+          noticia_id: noticiaId
+        })
+      });
+  
+      const responseData = await response.json();
+  
+      if (response.ok && responseData.status === 'success') {
+        // Limpar o campo de comentário
+        const comentarioInput = document.getElementById('comentario-' + noticiaId);
+        if (comentarioInput) {
+          comentarioInput.value = '';
+        }
+      
+        // Remover a notícia da lista
+        const itemToRemove = document.querySelector(`#noticia-item-${noticiaId}`);
+        if (itemToRemove) {
+          itemToRemove.remove();
+        }
+        
+        showAlert(successAlert);
+        errorAlert.style.display = 'none';
+        setTimeout(hideAlerts, 2000);
+      } else {
+        successAlert.style.display = 'none';
+        showAlert(errorAlert);
+        setTimeout(hideAlerts, 2000);
+      }
+    } catch (error) {
+      successAlert.style.display = 'none';
+      showAlert(errorAlert);
+      setTimeout(hideAlerts, 2000);
+    }
+  }
+});
+
+  });
+
+    
+  
+</script>
+
+
+{% endblock %}

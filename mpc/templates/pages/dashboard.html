@@ -1,0 +1,165 @@
+{% extends "template/global.html" %} 
+{% load custom_tags %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block content %} 
+
+<style>
+  .hover-shadow:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  }
+
+  /* Estilo customizado para hover nas linhas da tabela */
+  .custom-table tbody tr:hover {
+    background-color: #f2f2f2;
+  }
+  
+  /* Estilo para remover bordas entre colunas */
+  .custom-table thead th, .custom-table tbody td {
+    border-left: none;
+    border-right: none;
+  }
+  
+  /* Padding extra nas células para uma sensação espaçosa */
+  .custom-table th, .custom-table td {
+    padding: 20px 10px;
+  }
+  
+  /* Estilo para bordas arredondadas na tabela */
+  .custom-table-container {
+    border: 1px solid #dee2e6;
+    border-radius: .25rem;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Adiciona sombra à tabela */
+  }
+
+  .container-rounded {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Adiciona sombra ao container */
+  }
+  
+  .background-between-sections {
+    background-color: #f8f9fa; /* Cor de fundo do body */
+    margin: -20px;
+  }
+
+  .square-box {
+    background-color: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Adiciona sombra ao quadrado */
+    transition: transform 0.3s ease-in-out; /* Adiciona transição de hover */
+  }
+
+  .square-box:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  }
+
+  .date-format {
+    font-size: 1.2rem;
+  }
+
+</style>
+
+<div class="background-between-sections">
+  <div class="container my-5 container-rounded">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="square-box mb-3 d-flex justify-content-around">
+          <h1 class="display-5">
+            Jurisdicionadas
+          </h1>
+          <h1 class="display-5">
+            {% if data %}
+              {{ data|get_formated_data }}
+            {% else %}
+              {{ data_atual|get_formated_data }}
+            {% endif %}
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-6 mb-4 d-flex align-items-stretch">
+        <div class="p-4 bg-white rounded shadow-sm hover-shadow flex-grow-1">
+          <h4 class="mb-4">Informações do Usuário</h4>
+          <div class="d-flex justify-content-between">
+            <div class="info-item">
+              <strong>Assessor:</strong>
+              <p class="text-muted">{{ request.user.username }}</p>
+            </div>
+            <div class="info-item">
+              <strong>Unidade:</strong>
+              <p class="text-muted">{{ unidade }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+      <div class="col-lg-6 mb-4 d-flex align-items-stretch">
+        <!-- Seção de Busca por Datas -->
+        <div class="p-3 bg-white rounded shadow-sm hover-shadow flex-grow-1">
+          <h4 class="mb-3">Buscar por Datas</h4>
+          <form method="get" class="row">
+            <div class="col-sm-8">
+              <input type="date" {% if data %}value="{{ data }}" {% endif %} name="data_publicacao" class="form-control">
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-primary">Buscar</button>
+              <a href="{% url 'mpc:dashboard' %}" class="btn btn-success">Hoje</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  <!-- Tabela de Jurisdicionadas -->
+<div class="row">
+  <div class="col-lg-12">
+    <div class="table-responsive custom-table-container">
+      <table class="table table-hover custom-table mb-0">
+        <thead class="bg-primary text-white">
+          <tr>
+            <th scope="col">Identificador</th>
+            <th scope="col">Nome</th>
+            <th scope="col">Sigla</th>
+            <th scope="col">Seção I</th>
+            <th scope="col">Seção III</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for jurisdicionada in jurisdicionadas %}
+          <tr>
+            <td>{{jurisdicionada.coDemandante}}</td>
+            <td>
+              {% if info|get_item:jurisdicionada.coDemandante|length > 0 %}
+                <a class="text-primary" href="{% url 'mpc:publicacao' coDemandante=jurisdicionada.coDemandante %}{% if data %}?data_publicacao={{ data }}{% endif %}">{{jurisdicionada.nome}}</a>
+              {% else %}
+                {{jurisdicionada.nome}}
+              {% endif %}
+            </td>
+            <td>{{jurisdicionada.sigla|default:'-'}}</td>
+            <td>-</td>
+            <td>
+              <ul>
+                {{ info|get_item:jurisdicionada.coDemandante|length }}
+              </ul>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+{% endblock %}
