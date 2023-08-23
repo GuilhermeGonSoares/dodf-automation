@@ -44,7 +44,7 @@ def publicacao(request, coDemandante):
     jurisdicionadas = user_profile.jurisdicionadas.all()
     coDemandantes = [jurisdicionada.coDemandante for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante != '']
     dic = get_cached_publicacoes(coDemandantes, user_profile.id, data)
-    current_jurisdicionada = [jurisdicionada for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante==coDemandante]
+    current_jurisdicionada = [jurisdicionada for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante==coDemandante][0]
     
     publicacoes = dic[coDemandante]
     return render(request, 'pages/publicacao.html', {
