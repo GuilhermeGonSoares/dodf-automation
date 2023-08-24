@@ -10,4 +10,5 @@ urlpatterns = [
     path('delete_publicacao/', views.delete_publicacao, name='delete_publicacao'),
     path('autocomplete_jurisdicionada/', views.autocomplete_jurisdicionada, name='autocomplete_jurisdicionada'),
     path('jurisdicionada_detail/', views.jurisdicionada_detail, name='jurisdicionada_detail'),
+    path('search_info_jurisdicionada/', views.search_info_jurisdicionada, name='search_info_jurisdicionada'),
 ]

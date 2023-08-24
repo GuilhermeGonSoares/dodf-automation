@@ -128,3 +128,9 @@ def jurisdicionada_detail(request):
         'has_next': page_number < total_pages,
         'total_pages': total_pages
     })
+
+
+def search_info_jurisdicionada(request):
+    search = request.GET.get('q')
+    print(search)
+    return

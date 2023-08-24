@@ -103,6 +103,8 @@ Dashboard
 </style>
 
 <div class="background-between-sections">
+
+<div class="background-between-sections">
   <div class="container my-5 container-rounded">
     <div class="row">
       <div class="col-lg-12">
@@ -120,6 +122,15 @@ Dashboard
         </div>
       </div>
     </div>
+      <!-- Formulário começa aqui -->
+      <form action="{% url 'mpc:search_info_jurisdicionada' %}" method="GET">
+          <div class="input-group">
+              <input type="text" class="form-control" placeholder="Buscar..." name="q">
+              <div class="input-group-append">
+                  <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+              </div>
+          </div>
+      </form>
 
     <div class="row">
       <div class="col-lg-6 mb-4 d-flex align-items-stretch">
