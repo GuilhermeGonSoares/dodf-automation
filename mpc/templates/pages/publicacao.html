@@ -39,12 +39,20 @@ Publicações
     margin-bottom: 20px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Adiciona sombra ao container */
   }
+
+  .sticky {
+    position: -webkit-sticky; /* Para suporte no Safari */
+    position: sticky;
+    top: 20px; /* Espaço entre o topo da janela e o painel */
+}
+
 </style>
 
 <div class="container my-5 container-rounded">
   <div class="row mb-4">
     <div class="col-lg-12 text-center">
-      <h1>Publicações referentes a: {{ jurisdicionada.sigla }}</h1>
+      <h1>Publicações</h1>
+      <h3>{{ jurisdicionada.nome }} </h3>
     </div>
   </div>
 
@@ -85,7 +93,7 @@ Publicações
       {% endfor %}
     </div>
     <div class="col-md-4">
-      <div class="card">
+      <div class="card sticky">
         <div class="card-body">
           <h5 class="card-title">Publicações Selecionadas</h5>
           <ul class="list-group" id="noticias-selecionadas">
