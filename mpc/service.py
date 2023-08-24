@@ -1,4 +1,4 @@
-from .models import DodfPublicacao, PublicacaoAnalisada
+from .models import DodfPublicacao, PublicacaoAnalisada, Jurisdicionada
 from django.db import connection
 from django.db.models import F
 from django.core.paginator import Paginator
@@ -55,10 +55,23 @@ def get_publicacoes_by_day(coDemandantes, data):
 def get_all_publicacoes_by_demandante(jurisdicionada, page_number):
     descendentes = get_descendants(jurisdicionada.coDemandante, [])
 
-    resultado = DodfPublicacao.objects.select_related('publicacaoanalisada').filter(
+    # Primeiro, pré-carregue as informações das Jurisdicionadas relacionadas
+    co_demandantes = DodfPublicacao.objects.filter(
         coDemandante__in=descendentes,
-    ).order_by(F('carga').desc())
+        secao__in=['I', 'III']
+    ).values_list('coDemandante', flat=True)
+    
+    jurisdicionadas = Jurisdicionada.objects.filter(coDemandante__in=co_demandantes)
 
+    # Crie um dicionário mapeando coDemandante para Jurisdicionada
+    co_demandante_to_jurisdicionada = {jur.coDemandante: jur for jur in jurisdicionadas}
+
+    # Agora, faça a consulta das publicações com paginação
+    resultado = DodfPublicacao.objects.filter(
+        coDemandante__in=descendentes,
+        secao__in=['I', 'III']
+    ).order_by(F('carga').desc())
+    
     items_per_page = 10 
     paginator = Paginator(resultado, items_per_page)
 
@@ -66,4 +79,11 @@ def get_all_publicacoes_by_demandante(jurisdicionada, page_number):
         page_results = paginator.page(page_number)
     except:
         page_results = paginator.page(paginator.num_pages)
+
+    # Atribua as informações da Jurisdicionada a cada publicação
+    for publicacao in page_results:
+        co_demandante = publicacao.coDemandante
+        jurisdicionada = co_demandante_to_jurisdicionada.get(co_demandante)
+        publicacao.jurisdicionada = jurisdicionada
+
     return page_results

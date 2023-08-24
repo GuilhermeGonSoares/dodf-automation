@@ -96,7 +96,7 @@ def autocomplete_jurisdicionada(request):
     results = [{'label': jurisdicionada.nome, 'value': jurisdicionada.id} for jurisdicionada in jurisdicionadas]
     return JsonResponse(results, safe=False)
 
-
+@login_required(login_url='user:login')
 def jurisdicionada_detail(request):
     jurisdicionada_id = request.GET.get('id')
     page_number = request.GET.get('page', 1)

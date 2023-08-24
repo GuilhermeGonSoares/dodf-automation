@@ -27,23 +27,41 @@ Publicações
     }
   </style>
   
-<div class="row">
-    <div class="col-md-8">
+  <div class="row">
+
       {% for publicacao in page_results %}
       <div class="card mb-4">
-        {{publicacao.titulo|safe}}
-        {{publicacao.texto|safe}}
+        <div class="card-body">
+          <h5 class="card-title d-flex align-items-center justify-content-around">
+            {% if publicacao.jurisdicionada %}
+            <p>Jurisdicionada: {{ publicacao.jurisdicionada.nome }}</p>
+        {% else %}
+            <p>Jurisdicionada: Não encontrada</p>
+        {% endif %}
+            <button class="btn btn-link btn-toggle" data-publicacao-id="{{ publicacao.id }}">
+               {{ publicacao.titulo|safe }}
+            </button>
+            Seção {{publicacao.secao}}
+          </h5>
+          <div class="card-content d-none">
+            <p class="card-text">{{ publicacao.texto|safe }}</p>
+
+            <button class="btn btn-danger btn-delete mt-3" data-publicacao-id="{{ publicacao.id }}">Ocultar</button>
+          </div>
+        </div>
       </div>
       {% endfor %}
     </div>
-  </div>
+
+</div>
+
   
   <!-- Adicione os links de página gerados automaticamente pelo Paginator -->
 <div class="pagination">
     <span class="step-links">
       {% if page_results.has_previous %}
-        <a href="?page=1">&laquo; first</a>
-        <a href="?page={{ page_results.previous_page_number }}">previous</a>
+        <a href="?id={{jurisdicionada_id}}&page=1">&laquo; first</a>
+        <a href="?id={{jurisdicionada_id}}&page={{ page_results.previous_page_number }}">previous</a>
       {% endif %}
   
       <span class="current">
@@ -55,5 +73,29 @@ Publicações
         <a href="?id={{jurisdicionada_id}}&page={{ page_results.paginator.num_pages }}">last &raquo;</a>
       {% endif %}
     </span>
-  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleButtons = document.querySelectorAll('.btn-toggle');
+    const hideButtons = document.querySelectorAll('.btn-delete');
+  
+    toggleButtons.forEach((button) => {
+      button.addEventListener('click', function () {
+        const noticiaId = button.getAttribute('data-noticia-id');
+        const cardContent = button.parentElement.nextElementSibling;
+        cardContent.classList.toggle('d-none');
+      });
+    });
+  
+    hideButtons.forEach((button) => {
+      button.addEventListener('click', function () {
+        const noticiaId = button.getAttribute('data-noticia-id');
+        const cardContent = button.parentElement;
+        cardContent.classList.add('d-none');
+      });
+    });
+  });
+  
+</script>
   {% endblock %}

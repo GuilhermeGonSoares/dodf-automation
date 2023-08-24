@@ -23,7 +23,7 @@ class Jurisdicionada(models.Model):
 
     id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=255)
-    coDemandante = models.CharField(max_length=255)
+    coDemandante = models.CharField(max_length=255, unique=True)
     sigla = models.CharField(max_length=20)
     unidade = models.ForeignKey(Unidade, on_delete=models.CASCADE)
     apelido = models.CharField(max_length=50)
