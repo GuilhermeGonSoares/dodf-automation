@@ -175,7 +175,10 @@ Dashboard
         <tbody>
           {% for jurisdicionada in jurisdicionadas %}
           <tr>
-            <td>{{jurisdicionada.coDemandante}}</td>
+            <td> 
+              {% if jurisdicionada.coDemandante %}
+                {{jurisdicionada.coDemandante}}
+              {% endif %} </td>
             <td>
               {% if info|get_item:jurisdicionada.coDemandante|length > 0 %}
                 <a class="text-primary" href="{% url 'mpc:publicacao' coDemandante=jurisdicionada.coDemandante %}{% if data %}?data_publicacao={{ data }}{% endif %}">{{jurisdicionada.nome}}</a>

@@ -51,17 +51,13 @@ Publicações
 <div class="container my-5 container-rounded">
   <div class="row mb-4">
     <div class="col-lg-12 text-center">
-      <h1>Publicações</h1>
+      <h1>Publicações -  {% if data %}
+        {{ data|get_formated_data }}
+      {% else %}
+        {{ data_atual|get_formated_data }}
+      {% endif %}</h1>
       <h3>{{ jurisdicionada.nome }} </h3>
     </div>
-  </div>
-
-  <div class="alert alert-success" id="success-alert" role="alert" style="display: none;">
-    Ação realizada com sucesso!
-  </div>
-
-  <div class="alert alert-danger" id="error-alert" role="alert" style="display: none;">
-    Ocorreu um erro ao realizar a ação.
   </div>
 
   <div class="row">
@@ -75,10 +71,10 @@ Publicações
                {{ noticia.titulo|safe }}
             </button>
           </h5>
-          <h6 class="card-title d-flex align-items-center justify-content-center">
-            {{noticia.nome_demandante}}
-          </h6>
           <div class="card-content">
+            <h6 class="card-title d-flex align-items-center justify-content-center">
+              {{noticia.nome_demandante}}
+            </h6>
             <p class="card-text">{{ noticia.texto|safe }}</p>
             <div class="form-group">
               <label for="comentario-{{ noticia.id }}">Comentário:</label>
@@ -111,13 +107,13 @@ Publicações
           </ul>
         </div>
       </div>
-    </div>
-    <div class="alert alert-success" id="success-alert" role="alert" style="display: none;">
-      Ação realizada com sucesso!
-    </div>
-  
-    <div class="alert alert-danger" id="error-alert" role="alert" style="display: none;">
-      Ocorreu um erro ao realizar a ação.
+      <div class="alert alert-success sticky" id="success-alert" role="alert" style="display: none;">
+        Ação realizada com sucesso!
+      </div>
+    
+      <div class="alert alert-danger sticky" id="error-alert" role="alert" style="display: none;">
+        Ocorreu um erro ao realizar a ação.
+      </div>
     </div>
   </div>
 </div>

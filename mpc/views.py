@@ -7,31 +7,37 @@ import json
 from .service import get_analise_by_dodf_id
 from datetime import datetime
 from .service import get_all_publicacoes_by_demandante, get_total_pages, publicacao_por_demandante
-from .cache import get_cached_descendentes
+from .cache import get_cached_jurisdicionadas_with_descendentes
 
 
-def get_publicacoes_by_day(coDemandantes, data):
+def get_publicacoes_by_day(user_profile, data):
     dic = {}
-    for jurisdicionada in coDemandantes:
-        descendentes = get_cached_descendentes(jurisdicionada, [j for j in coDemandantes if j != jurisdicionada])
-        publicacoes = publicacao_por_demandante(descendentes, 'III', data)
+    jurisdicionadas = get_cached_jurisdicionadas_with_descendentes(user_profile)
+    for jurisdicionada in jurisdicionadas.keys():
+        publicacoes = publicacao_por_demandante(jurisdicionadas[jurisdicionada], 'III', data)
         dic[jurisdicionada] = publicacoes
         
     return dic
+
+
+def convert_data_publicacao(data_publicacao):
+    if data_publicacao:
+        data = datetime.strptime(data_publicacao, "%Y-%m-%d").date()
+    else:
+        data = datetime.now().date()
+
+    return data
 
 @login_required(login_url='user:login', redirect_field_name='next')
 def dashboard(request):
     data_publicacao = request.GET.get('data_publicacao')
     current_date = datetime.now().date()
-    if data_publicacao:
-        data = datetime.strptime(data_publicacao, "%Y-%m-%d").date()
-    else:
-        data = current_date
+    data = convert_data_publicacao(data_publicacao)
 
     user_profile = UserProfile.objects.prefetch_related('jurisdicionadas').get(user=request.user)
     jurisdicionadas = user_profile.jurisdicionadas.all()
-    coDemandantes = jurisdicionadas.values_list('coDemandante', flat=True)
-    dic = get_publicacoes_by_day(coDemandantes, data)
+    dic = get_publicacoes_by_day(user_profile, data)
+    
     
     return render(request, 'pages/dashboard.html', {
         'jurisdicionadas': jurisdicionadas,
@@ -45,15 +51,12 @@ def dashboard(request):
 @login_required(login_url='user:login')
 def publicacao(request, coDemandante):
     data_publicacao = request.GET.get('data_publicacao')
-    if data_publicacao:
-        data = datetime.strptime(data_publicacao, "%Y-%m-%d").date()
-    else:
-        data = datetime.now().date()
+    current_date = datetime.now().date()
+    data = convert_data_publicacao(data_publicacao)
 
     user_profile = UserProfile.objects.prefetch_related('jurisdicionadas').get(user=request.user)
     jurisdicionadas = user_profile.jurisdicionadas.all()
-    coDemandantes = [jurisdicionada.coDemandante for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante != '']
-    dic = get_publicacoes_by_day(coDemandantes, data)
+    dic = get_publicacoes_by_day(user_profile, data)
     current_jurisdicionada = [jurisdicionada for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante==coDemandante][0]
     
     publicacoes = dic[coDemandante]
@@ -61,6 +64,8 @@ def publicacao(request, coDemandante):
         'noticias': publicacoes,
         'jurisdicionada': current_jurisdicionada,
         'publicacao_cadastrada': {},
+        'data': data_publicacao,
+        'data_atual': f'{current_date.year}-{current_date.month}-{current_date.day}'
     })
 
 
