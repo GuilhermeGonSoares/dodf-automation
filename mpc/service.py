@@ -22,29 +22,32 @@ def get_analise_by_dodf_id(id):
     return PublicacaoAnalisada.objects.filter(dodf_id=id).first()
 
 def get_descendants(co_demandante, exclusions_list):
-    query = """
+    
+    formatted_ids = ", ".join(["'" + str(id) + "'" for id in exclusions_list])
+
+    query = f"""
     WITH descendants AS (
         SELECT coDemandante, coDemandantePai
         FROM demandante
-        WHERE coDemandante = %s
+        WHERE coDemandante = {co_demandante}
 
         UNION ALL
 
         SELECT d.coDemandante, d.coDemandantePai
         FROM demandante d
         JOIN descendants pd ON d.coDemandantePai = pd.coDemandante
-        WHERE d.coDemandantePai NOT IN (%s)
+        WHERE d.coDemandantePai NOT IN ({formatted_ids})
     )
     SELECT coDemandante
     FROM descendants
-    WHERE coDemandante NOT IN (%s);
+    WHERE coDemandante NOT IN ({formatted_ids});
     """
 
     with connection.cursor() as cursor:
-        exclusions = ",".join(map(str, exclusions_list))
-        cursor.execute(query, (co_demandante, exclusions, exclusions))
+        cursor.execute(query)
         results = cursor.fetchall()
         descendants = [row[0] for row in results]
+        print(co_demandante, ' <-> ', descendants)
 
     return descendants
 
