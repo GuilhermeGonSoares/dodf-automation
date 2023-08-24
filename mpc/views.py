@@ -5,10 +5,19 @@ from user.models import UserProfile
 from django.contrib.auth.decorators import login_required
 import json
 from .service import get_analise_by_dodf_id
-from .cache import get_cached_publicacoes
 from datetime import datetime
-from .service import get_all_publicacoes_by_demandante
+from .service import get_all_publicacoes_by_demandante, get_total_pages, publicacao_por_demandante
+from .cache import get_cached_descendentes
 
+
+def get_publicacoes_by_day(coDemandantes, data):
+    dic = {}
+    for jurisdicionada in coDemandantes:
+        descendentes = get_cached_descendentes(jurisdicionada, [j for j in coDemandantes if j != jurisdicionada])
+        publicacoes = publicacao_por_demandante(descendentes, 'III', data)
+        dic[jurisdicionada] = publicacoes
+        
+    return dic
 
 @login_required(login_url='user:login', redirect_field_name='next')
 def dashboard(request):
@@ -22,7 +31,7 @@ def dashboard(request):
     user_profile = UserProfile.objects.prefetch_related('jurisdicionadas').get(user=request.user)
     jurisdicionadas = user_profile.jurisdicionadas.all()
     coDemandantes = jurisdicionadas.values_list('coDemandante', flat=True)
-    dic = get_cached_publicacoes(coDemandantes, user_profile.id, data)
+    dic = get_publicacoes_by_day(coDemandantes, data)
     
     return render(request, 'pages/dashboard.html', {
         'jurisdicionadas': jurisdicionadas,
@@ -44,7 +53,7 @@ def publicacao(request, coDemandante):
     user_profile = UserProfile.objects.prefetch_related('jurisdicionadas').get(user=request.user)
     jurisdicionadas = user_profile.jurisdicionadas.all()
     coDemandantes = [jurisdicionada.coDemandante for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante != '']
-    dic = get_cached_publicacoes(coDemandantes, user_profile.id, data)
+    dic = get_publicacoes_by_day(coDemandantes, data)
     current_jurisdicionada = [jurisdicionada for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante==coDemandante][0]
     
     publicacoes = dic[coDemandante]
@@ -99,12 +108,18 @@ def autocomplete_jurisdicionada(request):
 @login_required(login_url='user:login')
 def jurisdicionada_detail(request):
     jurisdicionada_id = request.GET.get('id')
-    page_number = request.GET.get('page', 1)
+    page_number = int(request.GET.get('page', 1))
     jurisdicionada = Jurisdicionada.objects.get(pk=jurisdicionada_id)
-
+    
     page_results = get_all_publicacoes_by_demandante(jurisdicionada, page_number)
+    
+    total_pages = get_total_pages(jurisdicionada)
 
     return render(request, 'pages/jurisdicionada-detail.html', {
         'page_results': page_results, 
-        'jurisdicionada_id': jurisdicionada_id
-        })
+        'jurisdicionada_id': jurisdicionada_id,
+        'current_page': page_number,
+        'has_previous': page_number > 1,
+        'has_next': page_number < total_pages,
+        'total_pages': total_pages
+    })

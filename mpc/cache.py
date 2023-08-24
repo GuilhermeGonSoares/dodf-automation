@@ -1,15 +1,16 @@
 from django.core.cache import cache
-from .service import get_publicacoes_by_day
-from datetime import datetime
+from .service import get_descendants
 
-def get_cached_publicacoes(coDemandantes, user_profile_id, data):
-    cache_key = f"publicacoes-{data.day}-{data.month}-{data.year}-{user_profile_id}"
+
+def get_cached_descendentes(co_demandante, exclusions_list) :
+    cache_key = f"descendentes-{co_demandante}"
     cached_result = cache.get(cache_key)
 
     if cached_result:
+        print('tomali o cache')
         return cached_result
-
-    result = get_publicacoes_by_day(coDemandantes,  data)
-    # Armazena o resultado no cache por 24 horas (86400 segundos)
+    
+    result = get_descendants(co_demandante,  exclusions_list)
+    
     cache.set(cache_key, result, 86400)
     return result

@@ -32,20 +32,22 @@ Publicações
       {% for publicacao in page_results %}
       <div class="card mb-4">
         <div class="card-body">
-          <h5 class="card-title d-flex align-items-center justify-content-around">
-            {% if publicacao.jurisdicionada %}
-            <p>Jurisdicionada: {{ publicacao.jurisdicionada.nome }}</p>
-        {% else %}
-            <p>Jurisdicionada: Não encontrada</p>
-        {% endif %}
+          <h7 class="card-title d-flex align-items-center justify-content-around">          
+            <div class="d-flex flex-column align-items-center"> 
+              <h6>{{ publicacao.nome }}</h6>
+              <p class="">Seção {{publicacao.secao}}  -  {{publicacao.carga}}</p>
+            </div>
             <button class="btn btn-link btn-toggle" data-publicacao-id="{{ publicacao.id }}">
                {{ publicacao.titulo|safe }}
             </button>
-            Seção {{publicacao.secao}}
-          </h5>
+            
+          </h7>
           <div class="card-content d-none">
             <p class="card-text">{{ publicacao.texto|safe }}</p>
-
+            <div class="form-group">
+              <label for="comentario-{{ noticia.id }}">Comentário:</label>
+              <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3" disabled>{% if publicacao.comentario %}{{publicacao.comentario}}{% endif %}</textarea>
+            </div>
             <button class="btn btn-danger btn-delete mt-3" data-publicacao-id="{{ publicacao.id }}">Ocultar</button>
           </div>
         </div>
@@ -57,23 +59,24 @@ Publicações
 
   
   <!-- Adicione os links de página gerados automaticamente pelo Paginator -->
-<div class="pagination">
+  <div class="pagination">
     <span class="step-links">
-      {% if page_results.has_previous %}
+      {% if has_previous %}
         <a href="?id={{jurisdicionada_id}}&page=1">&laquo; first</a>
-        <a href="?id={{jurisdicionada_id}}&page={{ page_results.previous_page_number }}">previous</a>
+        <a href="?id={{jurisdicionada_id}}&page={{ current_page|add:"-1" }}">previous</a>
       {% endif %}
   
       <span class="current">
-        Página {{ page_results.number }} de {{ page_results.paginator.num_pages }}.
+        Página {{ current_page }} de {{ total_pages }}.
       </span>
   
-      {% if page_results.has_next %}
-        <a href="?id={{jurisdicionada_id}}&page={{ page_results.next_page_number }}">next</a>
-        <a href="?id={{jurisdicionada_id}}&page={{ page_results.paginator.num_pages }}">last &raquo;</a>
+      {% if has_next %}
+        <a href="?id={{jurisdicionada_id}}&page={{ current_page|add:"1" }}">next</a>
+        <a href="?id={{jurisdicionada_id}}&page={{ total_pages }}">last &raquo;</a>
       {% endif %}
     </span>
 </div>
+
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {

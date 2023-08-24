@@ -1,16 +1,21 @@
-from .models import DodfPublicacao, PublicacaoAnalisada, Jurisdicionada
+from .models import DodfPublicacao, PublicacaoAnalisada, Demandante
 from django.db import connection
-from django.db.models import F
-from django.core.paginator import Paginator
+from math import ceil
+from django.db.models import OuterRef, Subquery
 
 def publicacao_por_demandante(demandantes, secao, data):
+    nome_subquery = Demandante.objects.filter(
+        coDemandante=OuterRef('coDemandante')
+    ).values('nome')[:1]
 
-    resultado = DodfPublicacao.objects.select_related('publicacaoanalisada').filter(
+    resultado = DodfPublicacao.objects.annotate(
+        nome_demandante=Subquery(nome_subquery)
+    ).select_related('publicacaoanalisada').filter(
         coDemandante__in=demandantes,
         secao=secao,
         carga__date=data
     )
-
+    
     return resultado
 
 def get_analise_by_dodf_id(id):
@@ -43,47 +48,76 @@ def get_descendants(co_demandante, exclusions_list):
 
     return descendants
 
-def get_publicacoes_by_day(coDemandantes, data):
-    dic = {}
-    for jurisdicionada in coDemandantes:
-        descendentes = get_descendants(jurisdicionada, [j for j in coDemandantes if j != jurisdicionada])
-        publicacoes = publicacao_por_demandante(descendentes, 'III', data)
-        dic[jurisdicionada] = publicacoes
-        
-    return dic
 
-def get_all_publicacoes_by_demandante(jurisdicionada, page_number):
-    descendentes = get_descendants(jurisdicionada.coDemandante, [])
 
-    # Primeiro, pré-carregue as informações das Jurisdicionadas relacionadas
-    co_demandantes = DodfPublicacao.objects.filter(
-        coDemandante__in=descendentes,
-        secao__in=['I', 'III']
-    ).values_list('coDemandante', flat=True)
+def get_total_pages(jurisdicionada, results_per_page=10):
+    query = """
+    WITH descendants AS (
+        SELECT coDemandante
+        FROM demandante
+        WHERE coDemandante = %s
+        UNION ALL
+        SELECT d.coDemandante
+        FROM demandante d
+        JOIN descendants pd ON d.coDemandantePai = pd.coDemandante
+    )
+    SELECT COUNT(dp.id)  
+    FROM dodfPublicacao dp 
+    INNER JOIN descendants des ON des.coDemandante = dp.coDemandante
+    WHERE secao != 'II';
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, [jurisdicionada.coDemandante])
+        total = cursor.fetchone()[0]
+
+    return ceil(total / results_per_page)
     
-    jurisdicionadas = Jurisdicionada.objects.filter(coDemandante__in=co_demandantes)
 
-    # Crie um dicionário mapeando coDemandante para Jurisdicionada
-    co_demandante_to_jurisdicionada = {jur.coDemandante: jur for jur in jurisdicionadas}
+def get_all_publicacoes_by_demandante(jurisdicionada, page_number, results_per_page=10):
+        offset = (page_number - 1) * results_per_page
 
-    # Agora, faça a consulta das publicações com paginação
-    resultado = DodfPublicacao.objects.filter(
-        coDemandante__in=descendentes,
-        secao__in=['I', 'III']
-    ).order_by(F('carga').desc())
-    
-    items_per_page = 10 
-    paginator = Paginator(resultado, items_per_page)
+        query = """
+        WITH descendants AS (
+            SELECT coDemandante
+            FROM demandante
+            WHERE coDemandante = %s
 
-    try:
-        page_results = paginator.page(page_number)
-    except:
-        page_results = paginator.page(paginator.num_pages)
+            UNION ALL
 
-    # Atribua as informações da Jurisdicionada a cada publicação
-    for publicacao in page_results:
-        co_demandante = publicacao.coDemandante
-        jurisdicionada = co_demandante_to_jurisdicionada.get(co_demandante)
-        publicacao.jurisdicionada = jurisdicionada
+            SELECT d.coDemandante
+            FROM demandante d
+            JOIN descendants pd ON d.coDemandantePai = pd.coDemandante
+        )
 
-    return page_results
+        SELECT d.nome, dp.coDemandante, dp.secao, dp.tipo, dp.titulo, dp.texto, pa.comentario, dp.carga  
+        FROM dodfPublicacao dp 
+        INNER JOIN descendants des ON des.coDemandante = dp.coDemandante
+        INNER JOIN demandante d ON d.coDemandante = dp.coDemandante
+        LEFT JOIN publicacao_analisada pa ON pa.dodf_id = dp.id
+        WHERE secao != 'II'
+        ORDER BY carga DESC
+        OFFSET %s ROWS FETCH NEXT %s ROWS ONLY;
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query, (jurisdicionada.coDemandante, offset, results_per_page))
+            results = cursor.fetchall()
+            
+
+        # Transforme os resultados em objetos e retorne
+        objects = []
+        for row in results:
+            obj = {
+                'nome': row[0],
+                'coDemandante': row[1],
+                'secao': row[2],
+                'tipo': row[3],
+                'titulo': row[4],
+                'texto': row[5],
+                'comentario': row[6],
+                'carga': row[7].strftime('%d/%m/%Y')
+            }
+            objects.append(obj)
+
+        return objects

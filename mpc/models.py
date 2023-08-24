@@ -39,8 +39,9 @@ class Demandante(models.Model):
         managed = False
         db_table = 'demandante'
     id = models.AutoField(primary_key=True)
-    coDemandante = models.CharField(max_length=255)
+    coDemandante = models.CharField(max_length=255, unique=True)
     coDemandantePai = models.CharField(max_length=255)
+    nome = models.CharField(max_length=255)
 
     def __str__(self):
         return self.coDemandante
