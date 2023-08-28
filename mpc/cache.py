@@ -14,7 +14,7 @@ def get_cached_all_jurisdicionadas():
     return jurisdicionadas
 
 
-def get_cached_jurisdicionadas_with_descendentes(coDemandante, jurisdicionadas):
+def get_cached_jurisdicionadas_with_descendentes(coDemandante):
     cache_key = f"jurisdicionadas-descendentes"
     cached_result = cache.get(cache_key)
     

@@ -94,6 +94,34 @@ Dashboard
     background-color: #007bff;
     color: white;
   }
+
+  /* Estilo do badge para jurisdicionada selecionada */
+.jurisdicionada-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    background-color: #333;
+    color: white;
+    margin-top: 10px; /* Espaço acima do badge */
+    position: relative;
+}
+
+/* Estilo do botão 'x' para fechar/remover o badge */
+.jurisdicionada-badge .close-badge {
+    background-color: #555;
+    border-radius: 50%;
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+
   
 </style>
   <div class="container my-4 container-rounded">
@@ -116,29 +144,30 @@ Dashboard
       <!-- Formulário começa aqui -->
       <form action="{% url 'mpc:search_info_jurisdicionada' %}" method="GET">
         <div class="input-group">
-            
-            <!-- Dropdown de Jurisdicionada -->
-            <div class="dropdown me-2"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
-                <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                    Selecione Jurisdicionada
-                </button>
-                <div class="dropdown-menu p-4">
-                    <div class="mb-3">
-                        <label for="jurisdicionada-input" class="form-label">Jurisdicionada</label>
-                        <input type="text" id="jurisdicionada-input" placeholder="Digite o nome da jurisdicionada" class="form-control">
-                    </div>
-                </div>
-            </div>
-    
-            <!-- Input de busca -->
-            <input type="text" class="form-control me-2" placeholder="Buscar..." name="q"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
-            
-            <!-- Botão de busca -->
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="submit">Buscar</button>
-            </div>
+          <!-- Dropdown de Jurisdicionada -->
+          <div class="dropdown me-2"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
+              <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                  Selecione Jurisdicionada
+              </button>
+              <div class="dropdown-menu p-4">
+                  <div class="mb-3">
+                      <label for="jurisdicionada-input" class="form-label">Jurisdicionada</label>
+                      <input type="text" id="jurisdicionada-input" placeholder="Digite o nome da jurisdicionada" class="form-control">
+                  </div>
+              </div>
+              
+          </div>
+          
+          <!-- Input de busca -->
+          <input type="text" class="form-control me-2" placeholder="Buscar..." name="q"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
+          
+          <!-- Botão de busca -->
+          <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+          </div>
         </div>
-    
+        <!-- Container do badge da jurisdicionada selecionada -->
+        <div class="selected-jurisdicionada"></div>
         {% if data %}
         <input type="hidden" name="data_publicacao" value="{{ data }}">
         {% endif %}
@@ -228,16 +257,29 @@ Dashboard
 
 <script>
   $(function() {
-      $("#jurisdicionada-input").autocomplete({
-          source: "{% url 'mpc:autocomplete_jurisdicionada' %}",
-          minLength: 2, // Número mínimo de caracteres para acionar o autocompletar
-          select: function(event, ui) {
-            $("#jurisdicionada-input").val(ui.item.label);  // Mostra o nome no campo de texto
-            $("#jurisdicionada-id").val(ui.item.value);    // Armazena o ID no campo oculto
-            return false;  // Evita que o jQuery UI atualize o campo de texto com o valor (ID)
-          }
-      });
+    $("#jurisdicionada-input").autocomplete({
+        source: "{% url 'mpc:autocomplete_jurisdicionada' %}",
+        minLength: 2, // Número mínimo de caracteres para acionar o autocompletar
+        select: function(event, ui) {
+          $("#jurisdicionada-input").val("");  // Limpa o campo de texto após a seleção
+          $("#jurisdicionada-id").val(ui.item.value);
+
+          // Cria o badge da jurisdicionada selecionada
+          var badgeHTML = `<div class="jurisdicionada-badge">
+                              ${ui.item.label}
+                              <span class="close-badge" onclick="removeJurisdicionadaBadge()">×</span>
+                           </div>`;
+          $(".selected-jurisdicionada").html(badgeHTML);
+          return false;
+      }
+    });
   });
+  
+  // Função para remover o badge quando o 'x' for clicado
+  function removeJurisdicionadaBadge() {
+    $(".selected-jurisdicionada").empty();
+    $("#jurisdicionada-id").val("");
+  }
 
   </script>
   

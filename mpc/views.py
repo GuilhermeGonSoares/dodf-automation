@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 import json
 from datetime import datetime
 from .service import get_all_publicacoes_by_demandante, get_total_pages, publicacao_por_demandante, get_analise_by_dodf_id
-from .cache import get_cached_jurisdicionadas_with_descendentes, get_cached_all_jurisdicionadas
+from .cache import get_cached_jurisdicionadas_with_descendentes
 from django.db.models import Q, OuterRef, Subquery
 from django.core.paginator import Paginator, EmptyPage
 
@@ -15,8 +15,7 @@ def get_publicacoes_by_day(coDemandantes, data):
 
     for coDemandante in coDemandantes:
         descendentes = get_cached_jurisdicionadas_with_descendentes(
-            coDemandante,
-            coDemandantes
+            coDemandante
         )
         publicacoes = publicacao_por_demandante(descendentes, 'III', data)
         dic[coDemandante] = publicacoes
@@ -142,23 +141,28 @@ def jurisdicionada_detail(request):
 def search_info_jurisdicionada(request):
     search = request.GET.get('q')
     jurisdicionada_id=request.GET.get('jurisdicionada_id')
+    
     if jurisdicionada_id:
-        print('oi')
+        jurisdicionada = Jurisdicionada.objects.get(pk=jurisdicionada_id)
+        demandantes = get_cached_jurisdicionadas_with_descendentes(jurisdicionada.coDemandante)
+    
+    
     data_publicacao = request.GET.get('data_publicacao')
     data = convert_data_publicacao(data_publicacao)
     nome_subquery = Demandante.objects.filter(
         coDemandante=OuterRef('coDemandante')
     ).values('nome')[:1]
 
+    query = Q(~Q(secao='II'), Q(titulo__contains=search) | Q(texto__contains=search), carga__date=data)
+
+    if jurisdicionada_id:
+        query &= Q(coDemandante__in=demandantes)
+
     publicacoes_list = DodfPublicacao.objects.annotate(
         nome_demandante=Subquery(nome_subquery)
-    ).select_related('publicacaoanalisada').filter(
-        ~Q(secao='II'),
-        Q(titulo__contains=search) | Q(texto__contains=search),
-        carga__date=data,
-    ).order_by('carga')
-    paginator = Paginator(publicacoes_list, 10)  # Show 10 publicacoes per page
+    ).select_related('publicacaoanalisada').filter(query).order_by('carga')
 
+    paginator = Paginator(publicacoes_list, 10)  
     page = request.GET.get('page', 1)
     
     try:
