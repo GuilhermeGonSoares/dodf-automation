@@ -1,5 +1,17 @@
 from django.core.cache import cache
-from .service import get_descendants
+from .service import get_descendants, get_all_jurisdicionadas, binary_search
+
+
+def get_cached_all_jurisdicionadas():
+    cache_key = f"all-jurisdicionadas"
+    cached_result = cache.get(cache_key)
+
+    if cached_result:
+        return cached_result
+    
+    jurisdicionadas = get_all_jurisdicionadas()
+    cache.set(cache_key, jurisdicionadas, 86400)
+    return jurisdicionadas
 
 
 def get_cached_jurisdicionadas_with_descendentes(coDemandante, jurisdicionadas):
@@ -10,12 +22,11 @@ def get_cached_jurisdicionadas_with_descendentes(coDemandante, jurisdicionadas):
         cached_result = {}
 
     if cached_result.get(coDemandante, None):
-        print('oia o cache', cached_result.get(coDemandante))
         return cached_result.get(coDemandante)
     
-    descendentes = get_descendants(coDemandante, [code for code in jurisdicionadas if code != coDemandante])
+    jurisdicionadas = get_cached_all_jurisdicionadas()
+    descendentes = get_descendants(coDemandante, binary_search(jurisdicionadas, int(coDemandante)))
     cached_result[coDemandante] = descendentes
 
-    
     cache.set(cache_key, cached_result, 86400)
     return cached_result[coDemandante]

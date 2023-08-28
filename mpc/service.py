@@ -123,3 +123,32 @@ def get_all_publicacoes_by_demandante(jurisdicionada, page_number, results_per_p
             objects.append(obj)
 
         return objects
+
+
+def get_all_jurisdicionadas():
+    query = """
+        SELECT coDemandante FROM jurisdicionada j 
+        ORDER BY CAST(coDemandante AS INTEGER);
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+        co_jurisdicionadas = [int(row[0]) for row in results if row[0]]
+    
+    return co_jurisdicionadas
+
+def binary_search(array, value):
+    i = 0
+    j = len(array) - 1
+    
+    while i <= j:
+        middle = (i + j) // 2
+        if array[middle] == value:
+            array.pop(middle)
+            return array
+        else:
+            if array[middle] < value:
+                i = middle + 1
+            else:
+                j = middle - 1
+    return array

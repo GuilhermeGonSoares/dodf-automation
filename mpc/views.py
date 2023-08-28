@@ -4,12 +4,11 @@ from .models import *
 from user.models import UserProfile
 from django.contrib.auth.decorators import login_required
 import json
-from .service import get_analise_by_dodf_id
 from datetime import datetime
-from .service import get_all_publicacoes_by_demandante, get_total_pages, publicacao_por_demandante
-from .cache import get_cached_jurisdicionadas_with_descendentes
+from .service import get_all_publicacoes_by_demandante, get_total_pages, publicacao_por_demandante, get_analise_by_dodf_id
+from .cache import get_cached_jurisdicionadas_with_descendentes, get_cached_all_jurisdicionadas
 from django.db.models import Q, OuterRef, Subquery
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage
 
 def get_publicacoes_by_day(coDemandantes, data):
     dic = {}
