@@ -5,7 +5,6 @@ from django.contrib import messages
 
 def login_user(request):
     if request.method == 'POST':
-        print('poist')
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)

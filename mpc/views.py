@@ -8,15 +8,20 @@ from .service import get_analise_by_dodf_id
 from datetime import datetime
 from .service import get_all_publicacoes_by_demandante, get_total_pages, publicacao_por_demandante
 from .cache import get_cached_jurisdicionadas_with_descendentes
+from django.db.models import Q, OuterRef, Subquery
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-
-def get_publicacoes_by_day(user_profile, data):
+def get_publicacoes_by_day(coDemandantes, data):
     dic = {}
-    jurisdicionadas = get_cached_jurisdicionadas_with_descendentes(user_profile)
-    for jurisdicionada in jurisdicionadas.keys():
-        publicacoes = publicacao_por_demandante(jurisdicionadas[jurisdicionada], 'III', data)
-        dic[jurisdicionada] = publicacoes
-        
+
+    for coDemandante in coDemandantes:
+        descendentes = get_cached_jurisdicionadas_with_descendentes(
+            coDemandante,
+            coDemandantes
+        )
+        publicacoes = publicacao_por_demandante(descendentes, 'III', data)
+        dic[coDemandante] = publicacoes
+
     return dic
 
 
@@ -36,7 +41,9 @@ def dashboard(request):
 
     user_profile = UserProfile.objects.prefetch_related('jurisdicionadas').get(user=request.user)
     jurisdicionadas = user_profile.jurisdicionadas.all()
-    dic = get_publicacoes_by_day(user_profile, data)
+    coDemandantes = jurisdicionadas.filter(~Q(coDemandante='')).values_list('coDemandante', flat=True)
+    
+    dic = get_publicacoes_by_day(coDemandantes, data)
     
     
     return render(request, 'pages/dashboard.html', {
@@ -55,8 +62,10 @@ def publicacao(request, coDemandante):
     data = convert_data_publicacao(data_publicacao)
 
     user_profile = UserProfile.objects.prefetch_related('jurisdicionadas').get(user=request.user)
-    jurisdicionadas = user_profile.jurisdicionadas.all()
-    dic = get_publicacoes_by_day(user_profile, data)
+    jurisdicionadas = user_profile.jurisdicionadas.all() 
+    coDemandantes = jurisdicionadas.filter(~Q(coDemandante='')).values_list('coDemandante', flat=True)
+    
+    dic = get_publicacoes_by_day(coDemandantes, data)
     current_jurisdicionada = [jurisdicionada for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante==coDemandante][0]
     
     publicacoes = dic[coDemandante]
@@ -130,7 +139,40 @@ def jurisdicionada_detail(request):
     })
 
 
+@login_required(login_url='user:login')
 def search_info_jurisdicionada(request):
     search = request.GET.get('q')
-    print(search)
-    return
+    jurisdicionada_id=request.GET.get('jurisdicionada_id')
+    if jurisdicionada_id:
+        print('oi')
+    data_publicacao = request.GET.get('data_publicacao')
+    data = convert_data_publicacao(data_publicacao)
+    nome_subquery = Demandante.objects.filter(
+        coDemandante=OuterRef('coDemandante')
+    ).values('nome')[:1]
+
+    publicacoes_list = DodfPublicacao.objects.annotate(
+        nome_demandante=Subquery(nome_subquery)
+    ).select_related('publicacaoanalisada').filter(
+        ~Q(secao='II'),
+        Q(titulo__contains=search) | Q(texto__contains=search),
+        carga__date=data,
+    ).order_by('carga')
+    paginator = Paginator(publicacoes_list, 10)  # Show 10 publicacoes per page
+
+    page = request.GET.get('page', 1)
+    
+    try:
+        publicacoes = paginator.page(page)
+    except EmptyPage:
+        publicacoes = paginator.page(paginator.num_pages)
+    return render(request, 'pages/search-publicacoes.html', {
+        'page_results': publicacoes, 
+        'current_page': publicacoes.number, 
+        'total_pages': paginator.num_pages, 
+        'has_previous': publicacoes.has_previous(), 
+        'has_next': publicacoes.has_next(),
+        'search': search,
+        'data': data,
+        'data_publicacao': data_publicacao
+        })

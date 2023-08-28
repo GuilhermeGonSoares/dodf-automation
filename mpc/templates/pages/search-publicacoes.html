@@ -1,0 +1,103 @@
+{% extends "template/global.html" %}
+{% load custom_tags %}
+
+{% block title %}
+Publicações
+{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilo para a paginação */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+  
+    /* Estilo para os links de página */
+    .page-link {
+      color: #007bff;
+    }
+  
+    /* Estilo para o link de página ativa */
+    .page-item.active .page-link {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+  </style>
+  
+  <div class="row">
+    <h1> Publicações de {{data|date:"d/m/Y"}} com base na pesquisa: {{search}}</h1>
+      {% for publicacao in page_results %}
+      <div class="card mb-4">
+        <div class="card-body">
+          <h7 class="card-title d-flex align-items-center justify-content-around">          
+            <div class="d-flex flex-column align-items-center"> 
+              <h6>{{ publicacao.nome_demandante }}</h6>
+              <p class="">Seção {{publicacao.secao}}  -  {{publicacao.carga|date:"d/m/Y"}}</p>
+            </div>
+            <button class="btn btn-link btn-toggle" data-publicacao-id="{{ publicacao.id }}">
+               {{ publicacao.titulo|safe }}
+            </button>
+            
+          </h7>
+          <div class="card-content d-none">
+            <p class="card-text">{{ publicacao.texto|safe }}</p>
+            <div class="form-group">
+              <label for="comentario-{{ noticia.id }}">Comentário:</label>
+              <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3" disabled>{% if publicacao.comentario %}{{publicacao.comentario}}{% endif %}</textarea>
+            </div>
+            <button class="btn btn-danger btn-delete mt-3" data-publicacao-id="{{ publicacao.id }}">Ocultar</button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+</div>
+  
+  <!-- Adicione os links de página gerados automaticamente pelo Paginator -->
+  <div class="pagination">
+    <span class="step-links">
+      {% if has_previous %}
+        <a href="?q={{search}}&page=1{% if data_publicacao  %}&data_publicacao={{data_publicacao}}{% endif %}">&laquo; first</a>
+        <a href="?q={{search}}&page={{ current_page|add:"-1" }}{% if data_publicacao  %}&data_publicacao={{data_publicacao}}{% endif %}">previous</a>
+      {% endif %}
+  
+      <span class="current">
+        Página {{ current_page }} de {{ total_pages }}.
+      </span>
+  
+      {% if has_next %}
+        <a href="?q={{search}}&page={{ current_page|add:"1" }}{% if data_publicacao %}&data_publicacao={{data_publicacao}}{% endif %}">next</a>
+        <a href="?q={{search}}&page={{ total_pages }}{% if data_publicacao  %}&data_publicacao={{data_publicacao}}{% endif %}">last &raquo;</a>
+      {% endif %}
+    </span>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleButtons = document.querySelectorAll('.btn-toggle');
+    const hideButtons = document.querySelectorAll('.btn-delete');
+  
+    toggleButtons.forEach((button) => {
+      button.addEventListener('click', function () {
+        const noticiaId = button.getAttribute('data-noticia-id');
+        const cardContent = button.parentElement.nextElementSibling;
+        cardContent.classList.toggle('d-none');
+      });
+    });
+  
+    hideButtons.forEach((button) => {
+      button.addEventListener('click', function () {
+        const noticiaId = button.getAttribute('data-noticia-id');
+        const cardContent = button.parentElement;
+        cardContent.classList.add('d-none');
+      });
+    });
+  });
+  
+</script>
+  {% endblock %}

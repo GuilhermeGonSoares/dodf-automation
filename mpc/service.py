@@ -47,7 +47,6 @@ def get_descendants(co_demandante, exclusions_list):
         cursor.execute(query)
         results = cursor.fetchall()
         descendants = [row[0] for row in results]
-        print(co_demandante, ' <-> ', descendants)
 
     return descendants
 

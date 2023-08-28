@@ -43,11 +43,6 @@ Dashboard
     margin-bottom: 20px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Adiciona sombra ao container */
   }
-  
-  .background-between-sections {
-    background-color: #f8f9fa; /* Cor de fundo do body */
-    margin: -20px;
-  }
 
   .square-box {
     background-color: white;
@@ -101,11 +96,7 @@ Dashboard
   }
   
 </style>
-
-<div class="background-between-sections">
-
-<div class="background-between-sections">
-  <div class="container my-5 container-rounded">
+  <div class="container my-4 container-rounded">
     <div class="row">
       <div class="col-lg-12">
         <div class="square-box mb-3 d-flex justify-content-around">
@@ -124,15 +115,39 @@ Dashboard
     </div>
       <!-- Formulário começa aqui -->
       <form action="{% url 'mpc:search_info_jurisdicionada' %}" method="GET">
-          <div class="input-group">
-              <input type="text" class="form-control" placeholder="Buscar..." name="q">
-              <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="submit">Buscar</button>
-              </div>
-          </div>
-      </form>
+        <div class="input-group">
+            
+            <!-- Dropdown de Jurisdicionada -->
+            <div class="dropdown me-2"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
+                <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    Selecione Jurisdicionada
+                </button>
+                <div class="dropdown-menu p-4">
+                    <div class="mb-3">
+                        <label for="jurisdicionada-input" class="form-label">Jurisdicionada</label>
+                        <input type="text" id="jurisdicionada-input" placeholder="Digite o nome da jurisdicionada" class="form-control">
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Input de busca -->
+            <input type="text" class="form-control me-2" placeholder="Buscar..." name="q"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
+            
+            <!-- Botão de busca -->
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+            </div>
+        </div>
+    
+        {% if data %}
+        <input type="hidden" name="data_publicacao" value="{{ data }}">
+        {% endif %}
+        <input type="hidden" id="jurisdicionada-id" name="jurisdicionada_id" value="">
+    </form>
+    
+    
 
-    <div class="row">
+    <div class="row mt-3">
       <div class="col-lg-6 mb-4 d-flex align-items-stretch">
         <div class="p-4 bg-white rounded shadow hover-shadow flex-grow-1">
           <h4 class="mb-4">Informações do Usuário</h4>
@@ -166,8 +181,6 @@ Dashboard
         </div>
       </div>
     </div>
-    <input type="text" id="jurisdicionada-input" name="jurisdicionada" placeholder="Digite o nome da jurisdicionada">
-
 
   <!-- Tabela de Jurisdicionadas -->
 <div class="row">
@@ -219,13 +232,13 @@ Dashboard
           source: "{% url 'mpc:autocomplete_jurisdicionada' %}",
           minLength: 2, // Número mínimo de caracteres para acionar o autocompletar
           select: function(event, ui) {
-            $("#jurisdicionada-input").val(ui.item.label);
-            window.location.href = "{% url 'mpc:jurisdicionada_detail' %}?id=" + ui.item.value;
-            return false;
-        }
-        
+            $("#jurisdicionada-input").val(ui.item.label);  // Mostra o nome no campo de texto
+            $("#jurisdicionada-id").val(ui.item.value);    // Armazena o ID no campo oculto
+            return false;  // Evita que o jQuery UI atualize o campo de texto com o valor (ID)
+          }
       });
   });
+
   </script>
   
 
