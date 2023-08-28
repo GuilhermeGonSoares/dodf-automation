@@ -25,34 +25,161 @@ Publicações
       background-color: #007bff;
       border-color: #007bff;
     }
+
+    
+  .container-rounded {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Adiciona sombra ao container */
+  }
+
+    #jurisdicionada-input {
+      width: 300px; /* Largura limitada */
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      transition: border-color 0.3s ease-in-out;
+      margin-bottom: 15px; /* Espaçamento inferior */
+    }
+  
+    /* Estilo para mudar a cor da borda quando o input estiver focado */
+    #jurisdicionada-input:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+  
+    /* Estilo para os itens do autocompletar usando Bootstrap */
+    .ui-autocomplete {
+      max-height: 200px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 1000;
+    }
+  
+    /* Estilo para cada item do autocompletar */
+    .ui-menu-item {
+      padding: 10px;
+      cursor: pointer;
+    }
+  
+    /* Estilo quando um item do autocompletar estiver focado */
+    .ui-state-focus {
+      background-color: #007bff;
+      color: white;
+    }
+  
+    /* Estilo do badge para jurisdicionada selecionada */
+  .jurisdicionada-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 15px;
+      background-color: #333;
+      color: white;
+      margin-top: 10px; /* Espaço acima do badge */
+      position: relative;
+  }
+  
+  /* Estilo do botão 'x' para fechar/remover o badge */
+  .jurisdicionada-badge .close-badge {
+      background-color: #555;
+      border-radius: 50%;
+      position: absolute;
+      right: -5px;
+      top: -5px;
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+  }
   </style>
   
-  <div class="row">
-    <h1> Publicações de {{data|date:"d/m/Y"}} com base na pesquisa: {{search}}</h1>
-      {% for publicacao in page_results %}
-      <div class="card mb-4">
-        <div class="card-body">
-          <h7 class="card-title d-flex align-items-center justify-content-around">          
-            <div class="d-flex flex-column align-items-center"> 
-              <h6>{{ publicacao.nome_demandante }}</h6>
-              <p class="">Seção {{publicacao.secao}}  -  {{publicacao.carga|date:"d/m/Y"}}</p>
-            </div>
-            <button class="btn btn-link btn-toggle" data-publicacao-id="{{ publicacao.id }}">
-               {{ publicacao.titulo|safe }}
-            </button>
-            
-          </h7>
-          <div class="card-content d-none">
-            <p class="card-text">{{ publicacao.texto|safe }}</p>
-            <div class="form-group">
-              <label for="comentario-{{ noticia.id }}">Comentário:</label>
-              <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3" disabled>{% if publicacao.comentario %}{{publicacao.comentario}}{% endif %}</textarea>
-            </div>
-            <button class="btn btn-danger btn-delete mt-3" data-publicacao-id="{{ publicacao.id }}">Ocultar</button>
+  <div class="row container-rounded">
+    <!-- Título Atualizado -->
+    <div class="card mb-4 bg-dark text-white shadow">
+      <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+              <h4 class="mb-0">Publicações</h4>
+              <p class="mb-0">Data: {{data|date:"d/m/Y"}}</p>
+          </div>
+          <div>
+              <h4 class="mb-0">Pesquisa</h4>
+              <p class="mb-0">{{search}}</p>
+          </div>
+      </div>
+    </div>
+
+    <!-- Formulário começa aqui -->
+    <form class="mb-4" action="{% url 'mpc:search_info_jurisdicionada' %}" method="GET">
+        <div class="input-group">
+          <!-- Dropdown de Jurisdicionada -->
+          <div class="dropdown me-2"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
+              <button type="button" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                  Selecione Jurisdicionada
+              </button>
+              <div class="dropdown-menu p-4">
+                  <div class="mb-3">
+                      <label for="jurisdicionada-input" class="form-label">Jurisdicionada</label>
+                      <input type="text" id="jurisdicionada-input" placeholder="Digite o nome da jurisdicionada" class="form-control">
+                  </div>
+              </div>
+              
+          </div>
+          
+          <!-- Input de busca -->
+          <input type="text" class="form-control me-2" placeholder="Buscar..." name="q"> <!-- me-2 é uma classe do Bootstrap para dar margem à direita -->
+          
+          <!-- Botão de busca -->
+          <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="submit">Buscar</button>
           </div>
         </div>
+        <!-- Container do badge da jurisdicionada selecionada -->
+        <div class="selected-jurisdicionada">
+          {% if jurisdicionada %}
+            <div class="jurisdicionada-badge">
+              {{jurisdicionada}}
+              <span class="close-badge" onclick="removeJurisdicionadaBadge()">×</span>
+          </div>
+          {% endif %}
+        </div>
+        {% if data_publicacao %}
+          <input type="hidden" name="data_publicacao" value="{{ data_publicacao }}">
+        {% endif %}
+        {% if jurisdicionada %}
+          <input type="hidden" id="jurisdicionada-id" name="jurisdicionada_id" value="{{jurisdicionada.id}}">
+          {% else %}  
+          <input type="hidden" id="jurisdicionada-id" name="jurisdicionada_id" value="">
+        {% endif %}
+    </form>
+
+    {% for publicacao in page_results %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <h7 class="card-title d-flex align-items-center justify-content-around">          
+          <div class="d-flex flex-column align-items-center justify-content-center"> 
+            <h6>{{ publicacao.nome_demandante }}</h6>
+            <p class="">Seção {{publicacao.secao}}  -  {{publicacao.carga|date:"d/m/Y"}}</p>
+          </div>
+          <button class="btn btn-link btn-toggle" data-publicacao-id="{{ publicacao.id }}">
+              {{ publicacao.titulo|safe }}
+          </button>
+          
+        </h7>
+        <div class="card-content d-none">
+          <p class="card-text">{{ publicacao.texto|safe }}</p>
+          <div class="form-group">
+            <label for="comentario-{{ noticia.id }}">Comentário:</label>
+            <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3" disabled>{% if publicacao.comentario %}{{publicacao.comentario}}{% endif %}</textarea>
+          </div>
+          <button class="btn btn-danger btn-delete mt-3" data-publicacao-id="{{ publicacao.id }}">Ocultar</button>
+        </div>
       </div>
-      {% endfor %}
+    </div>
+    {% endfor %}
     </div>
 
 </div>
@@ -98,6 +225,31 @@ Publicações
       });
     });
   });
+
+  $(function() {
+    $("#jurisdicionada-input").autocomplete({
+        source: "{% url 'mpc:autocomplete_jurisdicionada' %}",
+        minLength: 2, // Número mínimo de caracteres para acionar o autocompletar
+        select: function(event, ui) {
+          $("#jurisdicionada-input").val("");  // Limpa o campo de texto após a seleção
+          $("#jurisdicionada-id").val(ui.item.value);
+
+          // Cria o badge da jurisdicionada selecionada
+          var badgeHTML = `<div class="jurisdicionada-badge">
+                              ${ui.item.label}
+                              <span class="close-badge" onclick="removeJurisdicionadaBadge()">×</span>
+                           </div>`;
+          $(".selected-jurisdicionada").html(badgeHTML);
+          return false;
+      }
+    });
+  });
+  
+  // Função para remover o badge quando o 'x' for clicado
+  function removeJurisdicionadaBadge() {
+    $(".selected-jurisdicionada").empty();
+    $("#jurisdicionada-id").val("");
+  }
   
 </script>
   {% endblock %}

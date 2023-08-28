@@ -141,7 +141,7 @@ def jurisdicionada_detail(request):
 def search_info_jurisdicionada(request):
     search = request.GET.get('q')
     jurisdicionada_id=request.GET.get('jurisdicionada_id')
-    
+    jurisdicionada = None
     if jurisdicionada_id:
         jurisdicionada = Jurisdicionada.objects.get(pk=jurisdicionada_id)
         demandantes = get_cached_jurisdicionadas_with_descendentes(jurisdicionada.coDemandante)
@@ -177,5 +177,6 @@ def search_info_jurisdicionada(request):
         'has_next': publicacoes.has_next(),
         'search': search,
         'data': data,
-        'data_publicacao': data_publicacao
+        'data_publicacao': data_publicacao,
+        'jurisdicionada': jurisdicionada,
         })
