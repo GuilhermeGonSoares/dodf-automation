@@ -173,7 +173,7 @@ Publicações
           <p class="card-text">{{ publicacao.texto|safe }}</p>
           <div class="form-group">
             <label for="comentario-{{ noticia.id }}">Comentário:</label>
-            <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3" disabled>{% if publicacao.comentario %}{{publicacao.comentario}}{% endif %}</textarea>
+            <textarea class="form-control" id="comentario-{{ noticia.id }}" rows="3" disabled>{% if publicacao.publicacaoanalisada.comentario %}{{publicacao.publicacaoanalisada.comentario}}{% endif %}</textarea>
           </div>
           <button class="btn btn-danger btn-delete mt-3" data-publicacao-id="{{ publicacao.id }}">Ocultar</button>
         </div>
