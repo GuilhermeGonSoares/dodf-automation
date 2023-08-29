@@ -7,6 +7,10 @@ register = template.Library()
 def get_item(dictionary, key):
     return dictionary.get(key, None)
 
+@register.filter
+def get_item_by_secao(array, secao):
+    return array.filter(secao=secao)
+
 
 @register.filter
 def get_formated_data(value):

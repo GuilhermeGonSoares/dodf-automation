@@ -5,19 +5,19 @@ from user.models import UserProfile
 from django.contrib.auth.decorators import login_required
 import json
 from datetime import datetime
-from .service import get_all_publicacoes_by_demandante, get_total_pages, publicacao_por_demandante, get_analise_by_dodf_id
+from .service import  publicacao_por_demandante, get_analise_by_dodf_id
 from .cache import get_cached_jurisdicionadas_with_descendentes
 from django.db.models import Q, OuterRef, Subquery
 from django.core.paginator import Paginator, EmptyPage
 
-def get_publicacoes_by_day(coDemandantes, data):
+def get_publicacoes_by_day(coDemandantes, data, secao=['I', 'III']):
     dic = {}
 
     for coDemandante in coDemandantes:
         descendentes = get_cached_jurisdicionadas_with_descendentes(
             coDemandante
         )
-        publicacoes = publicacao_por_demandante(descendentes, ['I', 'III'], data)
+        publicacoes = publicacao_por_demandante(descendentes, secao, data)
         dic[coDemandante] = publicacoes
 
     return dic
@@ -43,7 +43,6 @@ def dashboard(request):
     
     dic = get_publicacoes_by_day(coDemandantes, data)
     
-    
     return render(request, 'pages/dashboard.html', {
         'jurisdicionadas': jurisdicionadas,
         'unidade': user_profile.unidades,
@@ -54,7 +53,7 @@ def dashboard(request):
 
 
 @login_required(login_url='user:login')
-def publicacao(request, coDemandante):
+def publicacao(request, coDemandante, secao):
     data_publicacao = request.GET.get('data_publicacao')
     current_date = datetime.now().date()
     data = convert_data_publicacao(data_publicacao)
@@ -63,12 +62,13 @@ def publicacao(request, coDemandante):
     jurisdicionadas = user_profile.jurisdicionadas.all() 
     coDemandantes = jurisdicionadas.filter(~Q(coDemandante='')).values_list('coDemandante', flat=True)
     
-    dic = get_publicacoes_by_day(coDemandantes, data)
+    dic = get_publicacoes_by_day(coDemandantes, data, [secao])
     current_jurisdicionada = [jurisdicionada for jurisdicionada in jurisdicionadas if jurisdicionada.coDemandante==coDemandante][0]
     
     publicacoes = dic[coDemandante]
     return render(request, 'pages/publicacao.html', {
         'noticias': publicacoes,
+        'secao': secao,
         'jurisdicionada': current_jurisdicionada,
         'publicacao_cadastrada': {},
         'data': data_publicacao,
