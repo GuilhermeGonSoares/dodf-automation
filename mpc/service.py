@@ -12,7 +12,7 @@ def publicacao_por_demandante(demandantes, secao, data):
         nome_demandante=Subquery(nome_subquery)
     ).select_related('publicacaoanalisada').filter(
         coDemandante__in=demandantes,
-        secao=secao,
+        secao__in=secao,
         carga__date=data
     )
     
@@ -137,7 +137,7 @@ def get_all_jurisdicionadas():
     
     return co_jurisdicionadas
 
-def binary_search(array, value):
+def remove_element_binary_search(array, value):
     i = 0
     j = len(array) - 1
     

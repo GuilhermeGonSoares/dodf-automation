@@ -17,7 +17,7 @@ def get_publicacoes_by_day(coDemandantes, data):
         descendentes = get_cached_jurisdicionadas_with_descendentes(
             coDemandante
         )
-        publicacoes = publicacao_por_demandante(descendentes, 'III', data)
+        publicacoes = publicacao_por_demandante(descendentes, ['I', 'III'], data)
         dic[coDemandante] = publicacoes
 
     return dic
@@ -116,25 +116,6 @@ def autocomplete_jurisdicionada(request):
     jurisdicionadas = Jurisdicionada.objects.filter(nome__icontains=term)[:10]  # Filtra as jurisdicionadas que contêm o termo
     results = [{'label': jurisdicionada.nome, 'value': jurisdicionada.id} for jurisdicionada in jurisdicionadas]
     return JsonResponse(results, safe=False)
-
-@login_required(login_url='user:login')
-def jurisdicionada_detail(request):
-    jurisdicionada_id = request.GET.get('id')
-    page_number = int(request.GET.get('page', 1))
-    jurisdicionada = Jurisdicionada.objects.get(pk=jurisdicionada_id)
-    
-    page_results = get_all_publicacoes_by_demandante(jurisdicionada, page_number)
-    
-    total_pages = get_total_pages(jurisdicionada)
-
-    return render(request, 'pages/jurisdicionada-detail.html', {
-        'page_results': page_results, 
-        'jurisdicionada_id': jurisdicionada_id,
-        'current_page': page_number,
-        'has_previous': page_number > 1,
-        'has_next': page_number < total_pages,
-        'total_pages': total_pages
-    })
 
 
 @login_required(login_url='user:login')

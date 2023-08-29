@@ -1,26 +1,38 @@
-{% extends "template/global.html" %} {% block title %}Login {%endblock%} 
-{%block content %}
-<h1>Login</h1>
-<br />
-<br />
-{% include 'template/partials/messages.html' %}
+{% extends "template/global.html" %}
 
-<form action="" method="POST">
-  {% csrf_token %}
-  <div class="mb-3">
-    <label for="exampleInputEmail1" class="form-label">Username</label>
-    <input
-      type="text"
-      class="form-control"
-      name="username"
-      aria-describedby="emailHelp"
-    />
-  </div>
-  <div class="mb-3">
-    <label for="exampleInputPassword1" class="form-label">Password</label>
-    <input type="password" class="form-control" name="password" />
-  </div>
+{% block title %}
+Login
+{%endblock%}
 
-  <input type="submit" value="Submit" class="btn btn-secondary" />
-  {% endblock %}
-</form>
+{% block content %}
+<div class="d-flex justify-content-center align-items-center mt-5">
+    <div class="col-md-5">
+        <div class="bg-white p-5 rounded shadow-sm">
+            <h1 class="text-center mb-5">Login</h1>
+            
+            {% include 'template/partials/messages.html' %}
+            
+            <form action="" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="usernameInput" class="form-label">Username</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="username"
+                      id="usernameInput"
+                      aria-describedby="usernameHelp"
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="passwordInput" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="passwordInput" />
+                </div>
+                <div class="d-flex justify-content-center">
+                    <input type="submit" value="Submit" class="btn btn-secondary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
