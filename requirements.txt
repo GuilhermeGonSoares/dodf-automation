@@ -1,3 +1,4 @@
 django
 mssql-django
 python-dotenv
+fontawesomefree

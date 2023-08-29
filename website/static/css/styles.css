@@ -4,6 +4,11 @@ Messages .messages-container {
   gap: calc(var(--spacing-gutter-medium) / 2);
 }
 
+* {
+  color: inherit; /* Isso define a cor do link para a cor padrão do texto */
+  text-decoration: none; /* Isso remove o sublinhado */
+}
+
 .message {
   padding: 1rem;
   border-radius: 4px;

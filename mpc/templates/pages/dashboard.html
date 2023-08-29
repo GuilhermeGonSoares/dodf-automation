@@ -1,6 +1,6 @@
 {% extends "template/global.html" %} 
 {% load custom_tags %}
-
+{% load static %}
 {% block title %}
 Dashboard
 {% endblock %}
@@ -239,22 +239,22 @@ Dashboard
             <td>
 
               {% if info|get_item:jurisdicionada.coDemandante|get_item_by_secao:'I'|length > 0 %}
-                <a class="text-primary" href="{% url 'mpc:publicacao' coDemandante=jurisdicionada.coDemandante secao='I' %}{% if data %}?data_publicacao={{ data }}{% endif %}">
-                  {{ info|get_item:jurisdicionada.coDemandante|get_item_by_secao:'I'|length }}
+                <a class="text-primary text-decoration-none" href="{% url 'mpc:publicacao' coDemandante=jurisdicionada.coDemandante secao='I' %}{% if data %}?data_publicacao={{ data }}{% endif %}">
+                  {{ info|get_item:jurisdicionada.coDemandante|get_item_by_secao:'I'|length }} Publicação <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 </a>
               {% else %}
-                0
+                0 Publicação
               {% endif %}
 
             </td>
             <td>
               <ul>
                 {% if info|get_item:jurisdicionada.coDemandante|get_item_by_secao:'III'|length > 0 %}
-                  <a class="text-primary" href="{% url 'mpc:publicacao' coDemandante=jurisdicionada.coDemandante secao='III' %}{% if data %}?data_publicacao={{ data }}{% endif %}">
-                    {{ info|get_item:jurisdicionada.coDemandante|get_item_by_secao:'III'|length }}
+                  <a class="text-primary text-decoration-none" href="{% url 'mpc:publicacao' coDemandante=jurisdicionada.coDemandante secao='III' %}{% if data %}?data_publicacao={{ data }}{% endif %}">
+                    {{ info|get_item:jurisdicionada.coDemandante|get_item_by_secao:'III'|length }} Publicação <i class="fa-solid fa-arrow-right-from-bracket"></i>
                   </a>
                 {% else %}
-                  0
+                0 Publicação
                 {% endif %}
               </ul>
             </td>

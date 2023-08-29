@@ -164,8 +164,8 @@ Publicações
             <h6>{{ publicacao.nome_demandante }}</h6>
             <p class="">Seção {{publicacao.secao}}  -  {{publicacao.carga|date:"d/m/Y"}}</p>
           </div>
-          <button class="btn btn-link btn-toggle" data-publicacao-id="{{ publicacao.id }}">
-              {{ publicacao.titulo|safe }}
+          <button class="btn btn-link text-decoration-none btn-toggle" data-publicacao-id="{{ publicacao.id }}">
+              {{ publicacao.titulo|safe }} <i class="fa-solid fa-arrow-turn-down"></i>
           </button>
           
         </h7>
