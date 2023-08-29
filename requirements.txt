@@ -2,3 +2,4 @@ django
 mssql-django
 python-dotenv
 fontawesomefree
+gunicorn==20.1.0
